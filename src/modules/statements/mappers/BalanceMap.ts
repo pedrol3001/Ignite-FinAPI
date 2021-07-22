@@ -7,6 +7,7 @@ export class BalanceMap {
       amount,
       description,
       type,
+      sender_id,
       created_at,
       updated_at
     }) => (
@@ -16,7 +17,8 @@ export class BalanceMap {
         description,
         type,
         created_at,
-        updated_at
+        updated_at,
+        ...(sender_id && {sender_id:sender_id})
       }
     ));
 

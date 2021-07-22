@@ -11,6 +11,7 @@ import { ICreateStatementDTO } from "./ICreateStatementDTO";
 enum OperationType {
   DEPOSIT = 'deposit',
   WITHDRAW = 'withdraw',
+  TRANSFER = 'transfer',
 }
 
 let createStatement_useCase: CreateStatementUseCase;
@@ -41,6 +42,7 @@ describe("Create statement",()=>{
       amount: 100,
       type: OperationType.DEPOSIT,
       description: "teste",
+      sender_id: user_id,
       user_id: user_id
     }
 
@@ -61,7 +63,8 @@ describe("Create statement",()=>{
         amount: 100,
         type: OperationType.DEPOSIT,
         description: "teste",
-        user_id: "Não é user id"
+        user_id: "Não é user id",
+        sender_id: null,
       }
 
       await createStatement_useCase.execute(statement);
@@ -72,26 +75,48 @@ describe("Create statement",()=>{
   it("should not be able to create a negative balance statement",()=>{
     expect(async ()=>{
 
-      const user:ICreateUserDTO = {
+      const user1:ICreateUserDTO = {
         name: "teste",
         email: "teste@teste.com",
         password: "pass_teste"
       }
 
-      await createUser_useCase.execute(user);
+      const user2:ICreateUserDTO = {
+        name: "testee",
+        email: "testee@testee.com",
+        password: "pass_teste"
+      }
 
-      const userFromDb = await user_repository.findByEmail(user.email);
+      await createUser_useCase.execute(user1);
+      await createUser_useCase.execute(user2);
 
-      const user_id = userFromDb?.id || "";
 
-      const statement :ICreateStatementDTO = {
+      const user1FromDb = await user_repository.findByEmail(user1.email);
+      const user2FromDb = await user_repository.findByEmail(user2.email);
+
+      const user1_id = user1FromDb?.id || "";
+
+      const user2_id = user2FromDb?.id || "";
+
+      const statement1 :ICreateStatementDTO = {
         amount: 100,
         type: OperationType.WITHDRAW,
         description: "teste",
-        user_id: user_id
+        user_id: user1_id,
+        sender_id: null
       }
 
-      await createStatement_useCase.execute(statement);
+      await createStatement_useCase.execute(statement1);
+
+      const statement2 :ICreateStatementDTO = {
+        amount: 100,
+        type: OperationType.TRANSFER,
+        description: "teste",
+        user_id: user1_id,
+        sender_id: user2_id
+      }
+
+      await createStatement_useCase.execute(statement2);
 
     }).rejects.toBeInstanceOf(CreateStatementError.InsufficientFunds);
 

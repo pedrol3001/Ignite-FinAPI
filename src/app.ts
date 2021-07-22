@@ -18,6 +18,7 @@ app.use('/api/v1', router);
 
 app.use(
   (err: Error, request: express.Request, response: express.Response, _next: express.NextFunction) => {
+
     if (err instanceof AppError) {
       return response.status(err.statusCode).json({
         message: err.message

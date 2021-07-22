@@ -45,10 +45,11 @@ describe("Get balance",()=>{
       amount: 100,
       type: OperationType.DEPOSIT,
       description: "teste",
-      user_id: user_id
+      user_id: user_id,
+      sender_id:null
     }
 
-    const statementFromDb = await createStatement_useCase.execute(statement);
+    await statement_repository.create(statement);
 
     const result = await getBalance_UseCase.execute({user_id});
 

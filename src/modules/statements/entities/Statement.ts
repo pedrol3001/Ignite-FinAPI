@@ -1,4 +1,6 @@
+import { Tracing } from 'node:trace_events';
 import {
+  AfterLoad,
   Column,
   CreateDateColumn,
   Entity,
@@ -13,6 +15,7 @@ import { User } from '../../users/entities/User';
 enum OperationType {
   DEPOSIT = 'deposit',
   WITHDRAW = 'withdraw',
+  TRANSFER = 'transfer'
 }
 
 @Entity('statements')
@@ -22,6 +25,9 @@ export class Statement {
 
   @Column('uuid')
   user_id: string;
+
+  @Column('uuid')
+  sender_id : string | null;
 
   @ManyToOne(() => User, user => user.statement)
   @JoinColumn({ name: 'user_id' })
@@ -41,6 +47,11 @@ export class Statement {
 
   @CreateDateColumn()
   updated_at: Date;
+
+  @AfterLoad() _convertNumerics() {
+    // 64 bits truncated to 53 is fine in my case
+    this.amount = parseFloat(this.amount as any)
+  }
 
   constructor() {
     if (!this.id) {

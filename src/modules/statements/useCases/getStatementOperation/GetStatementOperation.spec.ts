@@ -13,6 +13,7 @@ import { GetStatementOperationUseCase } from "./GetStatementOperationUseCase";
 enum OperationType {
   DEPOSIT = 'deposit',
   WITHDRAW = 'withdraw',
+  TRANSFER = 'transfer',
 }
 
 let getStatementOperation_useCase: GetStatementOperationUseCase;
@@ -33,31 +34,59 @@ describe("Get statement operaion",()=>{
 
   it("should be able to get a statement operation",async ()=>{
 
-    const user:ICreateUserDTO = {
+    const user1:ICreateUserDTO = {
       name: "teste",
       email: "teste@teste.com",
       password: "pass_teste"
     }
 
-    const userFromDb = await createUser_useCase.execute(user);
-
-    const user_id = userFromDb?.id || "";
-
-    const statement :ICreateStatementDTO = {
-      amount: 100,
-      type: OperationType.DEPOSIT,
-      description: "teste",
-      user_id: user_id
+    const user2:ICreateUserDTO = {
+      name: "testee",
+      email: "testee@testee.com",
+      password: "pass_testee"
     }
 
-    const statementFromDb = await createStatement_useCase.execute(statement);
+    const user1FromDb = await createUser_useCase.execute(user1);
 
-    const statement_id = statementFromDb?.id || "";
+    const user2FromDb = await createUser_useCase.execute(user2);
 
-    const result = await getStatementOperation_useCase.execute({statement_id, user_id});
+    const user1_id = user1FromDb?.id || "";
 
-    expect(result).toHaveProperty("description");
+    const user2_id = user2FromDb?.id || "";
 
+    const statement1 :ICreateStatementDTO = {
+      amount: 200,
+      type: OperationType.DEPOSIT,
+      description: "teste",
+      user_id: user1_id,
+      sender_id: user2_id
+    }
+
+    const statement2 :ICreateStatementDTO = {
+      amount: 100,
+      type: OperationType.TRANSFER,
+      description: "teste",
+      user_id: user1_id,
+      sender_id: user2_id
+    }
+
+    const statement1FromDb = await createStatement_useCase.execute(statement1);
+
+    const statement2FromDb = await createStatement_useCase.execute(statement2);
+
+    const statement1_id = statement1FromDb?.id || "";
+
+    const statement2_id = statement2FromDb?.id || "";
+
+    const result1 = await getStatementOperation_useCase.execute({statement_id: statement1_id, user_id:user1_id});
+
+    const result2 = await getStatementOperation_useCase.execute({statement_id: statement2_id, user_id:user1_id});
+
+    expect(result1).toHaveProperty("description");
+
+    expect(result2).toHaveProperty("sender_id")
+
+    expect(result2.sender_id).toBe(user2_id);
 
   });
 
@@ -68,7 +97,8 @@ describe("Get statement operaion",()=>{
         amount: 100,
         type: OperationType.DEPOSIT,
         description: "teste",
-        user_id: "Não é user id"
+        user_id: "Não é user id",
+        sender_id: null
       }
 
       const statementFromDb = await createStatement_useCase.execute(statement);
